@@ -12,7 +12,8 @@
     "test:e2e": "node tests/e2e.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "icons": "node scripts/render-icons.mjs",
-    "sign": "web-ext sign --source-dir . --channel listed --amo-metadata amo/metadata.json"
+    "sign": "web-ext sign --source-dir . --channel listed --amo-metadata amo/metadata.json",
+    "amo-assets": "node scripts/amo-assets.mjs"
   },
   "devDependencies": {
     "puppeteer-core": "^24.0.0",
