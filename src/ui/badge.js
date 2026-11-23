@@ -47,6 +47,9 @@
   }
 
   function onEnter(e) {
+    // On focus, only show the tooltip for keyboard focus: not when the editor hands focus back
+    // after a click (that would pop a tooltip the user didn't ask for).
+    if (e.type === "focus" && !e.currentTarget.matches(":focus-visible")) return;
     const host = e.currentTarget.closest(`.${HOST}`);
     const entry = host && attached.get(host);
     if (!entry || editor.openFor() === entry.film.key) return;

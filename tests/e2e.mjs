@@ -171,6 +171,18 @@ try {
   let notes = await notesOnPage(page);
   ok(notes[A]?.includes("Recommended by Marco."), "note saved with Ctrl+Enter and shown on the right poster");
   ok(Object.keys(notes).length === 1, "only that poster shows a note");
+  const staleTip = await page.$eval(".whylisted-tip", (el) => el.classList.contains("-visible") && el.textContent.includes("Add a note")).catch(() => false);
+  ok(!staleTip, "after saving, the badge never shows a stale “Add a note” tooltip");
+
+  // Saving with the Save button (mouse) must not pop a tooltip at all.
+  const Cs = order[2];
+  await openEditor(page, Cs);
+  await page.keyboard.type("Saved with the button.");
+  await page.click(".whylisted-pop .-primary");
+  await sleep(500);
+  const tipAfterClick = await page.$eval(".whylisted-tip", (el) => el.classList.contains("-visible")).catch(() => false);
+  ok((await notesOnPage(page))[Cs] && !tipAfterClick, "saving with the Save button doesn't pop a tooltip");
+  await writeNote(page, Cs, " ");
 
   // Click-outside saves.
   await openEditor(page, B);

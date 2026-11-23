@@ -139,16 +139,21 @@
       return;
     }
     const { film } = current;
+    // Start the change before closing: the store updates its in-memory copy synchronously, so the
+    // badge that gets focus back on close already reflects it.
+    const removing = store.remove(film);
     close();
-    await store.remove(film);
+    await removing;
   }
 
   async function commit() {
     if (!current) return;
     const { film, original } = current;
     const text = ui.textarea.value;
+    // As above: save first (the in-memory note updates at once), then close.
+    const saving = text.trim() !== original.trim() ? store.save(film, text) : null;
     close();
-    if (text.trim() !== original.trim()) await store.save(film, text);
+    await saving;
   }
 
   function onKeydown(e) {

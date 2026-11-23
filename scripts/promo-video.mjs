@@ -479,11 +479,23 @@ document.onclick = play;
 
 /** H.264 MP4 for Reddit and co. (needs ffmpeg). */
 function mp4() {
-  const ffmpeg = process.env.FFMPEG || "ffmpeg";
+  // ffmpeg from FFMPEG, PATH, or a winget install whose PATH entry isn't active in this shell yet.
+  const wingetDir = join(process.env.LOCALAPPDATA || "", "Microsoft", "WinGet", "Packages");
+  const fromWinget = existsSync(wingetDir)
+    ? readdirSync(wingetDir)
+        .filter((d) => d.startsWith("Gyan.FFmpeg"))
+        .flatMap((d) => readdirSync(join(wingetDir, d)).map((sub) => join(wingetDir, d, sub, "bin", "ffmpeg.exe")))
+        .find(existsSync)
+    : null;
+  const ffmpeg = process.env.FFMPEG || (spawnSync("ffmpeg", ["-version"]).status === 0 ? "ffmpeg" : fromWinget || "ffmpeg");
   const r = spawnSync(
     ffmpeg,
     ["-y", "-framerate", String(FPS), "-i", join(FRAMES, "frame_%05d.jpg"),
-     "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+     // JPEG frames are full-range; convert to the standard (limited) range players and Reddit expect.
+     "-vf", "scale=in_range=pc:out_range=tv,format=yuv420p",
+     "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-profile:v", "high",
+     "-color_range", "tv", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
+     "-movflags", "+faststart",
      join(OUT, "whylisted-promo.mp4")],
     { stdio: "inherit" }
   );
