@@ -6,3 +6,5 @@ tests/screenshots/
 # AMO API credentials: never commit.
 *.env
 amo/*.env
+# web-ext sign bookkeeping (local only)
+.amo-upload-uuid
