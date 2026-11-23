@@ -273,11 +273,17 @@
     if (localOnly.size) await promote();
   }
 
+  /** Every note, one per film (the newer copy where a film has both a synced and a local one). */
+  function all() {
+    const keys = new Set([...synced.keys(), ...localOnly.keys()]);
+    return [...keys].map(resolve).filter(Boolean);
+  }
+
   /** Subscribes to note changes (local, from other tabs, or from other devices). Returns an unsubscribe function. */
   function subscribe(fn) {
     listeners.add(fn);
     return () => listeners.delete(fn);
   }
 
-  Whylisted.store = { init, find, save, remove, subscribe, MAX_LENGTH };
+  Whylisted.store = { init, find, all, save, remove, subscribe, MAX_LENGTH };
 })();

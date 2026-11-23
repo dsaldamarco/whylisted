@@ -31,6 +31,7 @@ const SCENES = {
     url: "https://letterboxd.com/dave/watchlist/page/5/",
     notes: {
       kokuho: "Recommended by Marco.",
+      "i-stand-alone": "Marco says it's brutal but worth it.",
       "belle-2021": "Saw a clip on YouTube and loved the animation.",
       rec: "Watch this before the sequel.",
       "la-grazia": "For the next movie night.",
@@ -38,6 +39,8 @@ const SCENES = {
     preview: "rec",
     // Other visible films with a custom poster the fixture can't guess.
     extraPosters: ["crumb"],
+    // Typed into the Notes menu for the search screenshot.
+    search: "marco",
   },
   editor: {
     url: WATCHLIST,
@@ -137,6 +140,27 @@ const gridClip = () =>
   clip.width = right - clip.x;
   await page.screenshot({ path: join(OUT, "watchlist.png"), clip });
   console.log("wrote watchlist.png");
+
+  // 1b. Searching notes from the Watchlist's filter bar.
+  await page.mouse.move(2, 2);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  // Hide the "<Name> wants to see N films" heading so nobody's name is in the shot.
+  await page.addStyleTag({ content: "#content-nav .section-heading { visibility: hidden; }" });
+  await page.click(".whylisted-notes-label");
+  await page.waitForSelector(".whylisted-menu.-open");
+  await page.type(".whylisted-menu-input", SCENES.watchlist.search);
+  await sleep(600);
+  const searchClip = await page.evaluate(() => {
+    const bar = document.querySelector("#content-nav").getBoundingClientRect();
+    const menu = document.querySelector(".whylisted-menu").getBoundingClientRect();
+    const grid = document.querySelector(".poster-grid").getBoundingClientRect();
+    const top = bar.top + scrollY - 10;
+    return { x: grid.left + scrollX - 20, y: top, width: grid.width + 40, height: menu.bottom + scrollY + 24 - top };
+  });
+  await page.screenshot({ path: join(OUT, "search.png"), clip: searchClip });
+  console.log("wrote search.png");
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => sessionStorage.clear());
 }
 
 // 2. Writing a new note.

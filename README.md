@@ -44,11 +44,26 @@ Whylisted lets you attach a short private note to any film, and shows it where y
 - **Add one in a second.** Hover any poster, click the **+** that appears in the same corner and type. Nothing else on the page moves.
 - **Edit or delete it at any time.** The editor shows when the note was added or last edited.
 - **Find it on the film's page too.** The same note sits on the cover when you open the film. You can write it there too, even before the film is on your Watchlist.
+- **Search and filter by note.** A **Notes** menu joins Letterboxd's own filters above the Watchlist. Type "Marco" to see only the films Marco recommended, or show only films with (or without) a note.
 - **Have it on all your computers.** Signed in to Firefox? Your notes follow your account to every computer where you use Whylisted.
 
 <p align="center">
   <img src="docs/screenshots/film-page.png" alt="The Letterboxd page for Hard Boiled, with the note editor open beside the film's cover, showing 'Recommended by Vincenzo.'">
 </p>
+
+### Search and filter by note
+
+<p align="center">
+  <img src="docs/screenshots/search.png" alt="The Notes menu in the Watchlist's filter bar, searching for 'marco': the grid shows only the two films whose notes mention Marco, and the menu lists both notes with the word highlighted.">
+</p>
+
+The **Notes** menu sits next to Decade, Genre, Service and Sort, and looks like them.
+
+- **Search your notes.** As you type, the grid shows only the films on this page whose note matches. Case and accents don't matter: "marco" finds "Marco". The menu also lists *every* matching note, from any page of your Watchlist or any film page. Click one to open the film.
+- **Show films with or without a note.** Handy for finding the films you haven't annotated yet, or only the ones you have.
+- **It stays on while you browse.** The search and filter carry over as you page through your Watchlist in that tab. The menu label shows what's active (for example *Notes: "marco"*), and choosing *All films* and clearing the search resets everything.
+
+Letterboxd shows a Watchlist 28 films per page and Whylisted doesn't load the other pages. So the grid filter works on the page you're on, while the list in the menu covers all your notes.
 
 ### Designed to look like Letterboxd
 
@@ -139,6 +154,7 @@ Temporary add-ons are removed when Firefox closes. Your notes are kept for the n
 - notes surviving a reload, a re-sort, grid items re-rendered in place, and a full browser restart on the same profile;
 - sync: notes land in Firefox's sync storage, and a note added or deleted "on another computer" (written straight into that storage while Firefox is closed) shows up or disappears; when sync storage is full, notes are kept on the device and move into sync once there's room;
 - notes shared between the Watchlist and film pages, with only the film's own cover getting a badge (not the "similar films" row);
+- search and filter: matching ignores case and accents, results are highlighted, "with / without a note", the empty state, and the filter carrying over to the next page load;
 - the phone-width layout;
 - nothing injected on other pages.
 
@@ -159,6 +175,7 @@ src/
   ui/tooltip.js          Letterboxd-style ("twipsy") tooltip for hints and previews
   ui/editor.js           the note popover: layout, keyboard, save/cancel/delete
   ui/badge.js            the poster badge and its states
+  ui/filter.js           the Notes menu: search and filter the Watchlist by note
   main.js                finds posters (Watchlist grid, film-page cover) and keeps badges in sync
   whylisted.css          all styles, built on Letterboxd's own CSS custom properties
 tests/                   end-to-end test in Firefox, and the fixture it uses
@@ -167,6 +184,8 @@ docs/                    logo and screenshots for this README
 ```
 
 **Integration.** Letterboxd renders posters as server HTML wrapping React "islands" (`LazyPoster`): `li.griditem` in a Watchlist, `#js-poster-col > section.poster-list.-single` for the cover on a film page. Whylisted only ever appends its badge to that server-rendered wrapper, never inside React's tree, so Letterboxd's re-renders can't remove it and won't trip over it. The cut-out ring is pure CSS (a `mask` on the poster), so React's DOM is never touched.
+
+**Search and filter.** The Notes menu reuses Letterboxd's label markup (`.smenu-wrapper > .smenu > label`), so the uppercase label and chevron are the site's own. The dropdown is Whylisted's, so it doesn't depend on Letterboxd's menu script. Filtering only adds a class that hides grid items, so the page's own markup is left alone. The search and filter are kept in `sessionStorage` for the tab.
 
 **Dynamic pages.** A single `MutationObserver`, batched to one scan per animation frame, picks up posters as they are added, hydrated, re-sorted or swapped in place. Each poster's wrapper remembers which film its badge belongs to. If Letterboxd reuses it for another film, the badge is rebuilt for the new one.
 
@@ -204,7 +223,6 @@ Notes that don't fit in sync live in `browser.storage.local` in a readable form,
 ## Ideas for later
 
 - Export / import notes (JSON, maybe CSV for spreadsheets)
-- Search and filter the Watchlist by note
 - Tags ("movie night", "with Marco", "director project")
 - Sync on Android, once Firefox supports it
 - Notes on lists, diary entries and other poster grids

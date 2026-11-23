@@ -12,7 +12,7 @@
   "use strict";
 
   const P = Whylisted.PREFIX;
-  const { film, store, badge, editor } = Whylisted;
+  const { film, store, badge, editor, filter } = Whylisted;
 
   /**
    * Where badges appear. Each context pairs a URL pattern with the
@@ -23,6 +23,8 @@
       // `/<username>/watchlist/…`, including paging, sorting and filters: every poster in the grid.
       path: /^\/[^/]+\/watchlist(\/|$)/,
       hosts: ".poster-grid li, ul.poster-list > li, .js-watchlist-content li.griditem",
+      // The "Notes" search & filter menu in the Watchlist's filter bar.
+      filter: true,
     },
     {
       // `/film/<slug>/…` (and its tabs: reviews, cast, details…): only the film's own large cover,
@@ -52,6 +54,9 @@
       const descriptor = film.identify(host);
       if (descriptor) badge.attach(host, descriptor);
     }
+
+    if (context.filter && filter.mount()) filter.apply();
+    else filter.unmount();
   }
 
   function schedule() {
@@ -63,6 +68,7 @@
   function teardown() {
     active = false;
     editor.close({ restoreFocus: false });
+    filter.unmount();
     document.documentElement.classList.remove(`${P}-on`);
     for (const host of document.querySelectorAll(`.${P}-host`)) badge.detach(host);
   }
@@ -76,11 +82,20 @@
       badge.render(host);
       if (!hadNote && host.classList.contains(`${P}-has-note`)) badge.pulse(host);
     }
+    // A changed note can change which films the search & filter shows.
+    filter.apply();
   }
+
+  /** Everything Whylisted itself puts on the page (its changes must not trigger another scan). */
+  const OWN_UI = `.${P}-pop, .${P}-tip, .${P}-badge, .${P}-notes-menu, .${P}-empty`;
+  const isOwnNode = (node) => node instanceof Element && node.matches(OWN_UI);
 
   function isOwnMutation(mutation) {
     const t = mutation.target;
-    return t instanceof Element && (t.closest(`.${P}-pop, .${P}-tip`) !== null || t.classList.contains(`${P}-badge`));
+    if (t instanceof Element && t.closest(OWN_UI)) return true;
+    // Whylisted adding or removing one of its own elements (e.g. the "no matches" message).
+    const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
+    return mutation.type === "childList" && nodes.length > 0 && nodes.every(isOwnNode);
   }
 
   async function start() {

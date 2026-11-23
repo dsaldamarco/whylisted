@@ -1,6 +1,6 @@
 {
   "name": "whylisted",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Remember why it's on your watchlist. Private notes for your Letterboxd Watchlist, synced with your Firefox account (Firefox add-on).",
   "license": "MIT",

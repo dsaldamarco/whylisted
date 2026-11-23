@@ -554,6 +554,266 @@
   background: rgba(236, 18, 0, 0.12);
 }
 
+/* -------------------------------------------------- notes search & filter */
+
+/* The label uses Letterboxd's own `.smenu-wrapper label` styles; only the active state is ours. */
+.whylisted-notes-menu .whylisted-notes-label {
+  cursor: pointer;
+}
+
+.whylisted-notes-menu.-active .whylisted-notes-label {
+  color: var(--whylisted-accent);
+}
+
+.whylisted-notes-menu .whylisted-notes-label:focus-visible {
+  outline: 2px solid var(--theme-focus-color, rgba(32, 156, 228, 0.9));
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+/* The dropdown: the same light slate panel as Letterboxd's filter menus. */
+.whylisted-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10010;
+  box-sizing: border-box;
+  width: 18rem;
+  margin-top: 2px;
+  padding: 0 0 4px;
+  border-radius: 3px;
+  background: #89a;
+  color: #2c3440;
+  font-family: var(--whylisted-font);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-align: start;
+  text-transform: none;
+  letter-spacing: normal;
+  box-shadow: inset 0 1px rgba(0, 0, 0, 0.05), 0 0 15px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.12s ease-in, transform 0.12s ease-in;
+}
+
+.whylisted-menu[hidden] {
+  display: none;
+}
+
+.whylisted-menu.-open {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--whylisted-in) ease-out, transform var(--whylisted-out) var(--whylisted-ease);
+}
+
+.whylisted-menu * {
+  box-sizing: border-box;
+}
+
+.whylisted-menu-search {
+  padding: 8px 8px 2px;
+}
+
+.whylisted-menu-input {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 3px;
+  background: #cde;
+  color: #234;
+  font-family: var(--whylisted-font);
+  font-size: 0.8125rem;
+  box-shadow: inset 0 1px 2px rgba(0, 17, 34, 0.25);
+  transition: background-color var(--whylisted-in) ease-out;
+}
+
+.whylisted-menu-input::placeholder {
+  color: #567;
+  opacity: 1;
+}
+
+.whylisted-menu-input:focus {
+  background: #fff;
+}
+
+.whylisted-menu-sublabel {
+  margin: 0;
+  padding: 8px 8px 4px;
+  color: #2c3440;
+  font-size: 0.6875rem;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.whylisted-menu-divider {
+  margin-top: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.whylisted-menu-modes {
+  display: block;
+}
+
+/* Items: Letterboxd's `.smenu-menu li .item`, with its green check for the selected one. */
+.whylisted-menu-item {
+  all: unset;
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 4px 8px 4px 24px;
+  color: #2c3440;
+  font-family: var(--whylisted-font);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.whylisted-menu-item:hover,
+.whylisted-menu-item:focus-visible {
+  background: #708090;
+  color: #fff;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.whylisted-menu-item.-selected {
+  color: #fff;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.whylisted-menu-item.-selected::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  width: 3px;
+  height: 7px;
+  border-right: 2px solid #14ff6c;
+  border-bottom: 2px solid #14ff6c;
+  transform: rotate(45deg);
+}
+
+.whylisted-menu-count {
+  margin: 2px 0 0;
+  padding: 2px 8px 0 24px;
+  color: #456;
+  font-size: 0.6875rem;
+}
+
+.whylisted-menu-results {
+  max-height: min(18rem, 50vh);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.whylisted-menu-results li {
+  margin: 0;
+  padding: 0;
+}
+
+.whylisted-result {
+  display: block;
+  padding: 5px 8px 6px;
+  color: #2c3440;
+  text-decoration: none;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.1);
+}
+
+a.whylisted-result:hover,
+a.whylisted-result:focus-visible {
+  background: #708090;
+  color: #fff;
+  text-decoration: none;
+  outline: none;
+}
+
+.whylisted-result-title {
+  display: block;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.whylisted-result-year {
+  color: #456;
+  font-weight: 400;
+}
+
+a.whylisted-result:hover .whylisted-result-year {
+  color: #def;
+}
+
+.whylisted-result-note {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #234;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+a.whylisted-result:hover .whylisted-result-note {
+  color: #def;
+}
+
+.whylisted-result-mark {
+  padding: 0 1px;
+  border-radius: 2px;
+  background: rgba(64, 188, 244, 0.45);
+  color: inherit;
+}
+
+.whylisted-result-empty {
+  padding: 4px 8px 6px;
+  color: #345;
+  white-space: normal;
+}
+
+/* Lifts Letterboxd's filter bar above the poster grid while the Notes menu is open. */
+#content-nav .sorting-selects.whylisted-bar-raised,
+.internal-content-nav .sorting-selects.whylisted-bar-raised {
+  z-index: 20; /* beats Letterboxd's `#content-nav .sorting-selects { z-index: 0 }` */
+}
+
+/* Hidden by the filter. */
+.whylisted-host.whylisted-filtered-out {
+  display: none !important;
+}
+
+/* Shown in place of the grid when nothing on this page matches. */
+.whylisted-empty {
+  margin: 24px 0;
+  color: var(--theme-metadata-content-color, #678);
+  font-family: var(--whylisted-font);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.whylisted-linkbutton {
+  all: unset;
+  color: var(--theme-body-link-content-color, #def);
+  cursor: pointer;
+}
+
+.whylisted-linkbutton:hover {
+  color: var(--theme-body-link-hover-content-color, #40bcf4);
+}
+
+.whylisted-linkbutton:focus-visible {
+  outline: 2px solid var(--theme-focus-color, rgba(32, 156, 228, 0.9));
+  outline-offset: 2px;
+}
+
 /* ------------------------------------------------------------ small screens */
 
 @media (max-width: 543px) {
@@ -561,8 +821,13 @@
     padding: 14px 14px 12px;
   }
 
-  .whylisted-pop-text {
+  .whylisted-pop-text,
+  .whylisted-menu-input {
     font-size: 1rem; /* avoids zoom-on-focus in mobile browsers */
+  }
+
+  .whylisted-menu {
+    width: min(18rem, calc(100vw - 32px));
   }
 }
 
@@ -576,7 +841,9 @@
   .whylisted-pop,
   .whylisted-pop.-open,
   .whylisted-pop-text,
-  .whylisted-pop-field {
+  .whylisted-pop-field,
+  .whylisted-menu,
+  .whylisted-menu.-open {
     transition-duration: 0s !important;
     animation: none !important;
   }

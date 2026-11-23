@@ -294,6 +294,68 @@ try {
   notes = await notesOnPage(page);
   ok(notes[A]?.includes("with friends") && notes[B]?.includes("filmography"), "film-page notes show up in the Watchlist");
 
+  console.log("Search & filter");
+  const visible = () =>
+    page.$$eval(".whylisted-host:not(.whylisted-filtered-out)", (els) =>
+      els.map((el) => el.querySelector("[data-production-uid]").getAttribute("data-production-uid"))
+    );
+  const openMenu = async () => {
+    if (await page.$(".whylisted-menu.-open")) return;
+    await page.click(".whylisted-notes-label");
+    await page.waitForSelector(".whylisted-menu.-open");
+    await sleep(250);
+  };
+  const search = async (text) => {
+    await openMenu();
+    await page.$eval(".whylisted-menu-input", (i) => {
+      i.value = "";
+      i.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    if (text) await page.type(".whylisted-menu-input", text);
+    await sleep(300);
+  };
+  const setShow = async (label) => {
+    await openMenu();
+    const buttons = await page.$$(".whylisted-menu-item");
+    for (const b of buttons) if ((await b.evaluate((n) => n.textContent)) === label) await b.click();
+    await sleep(300);
+  };
+
+  ok(Boolean(await page.$(".sorting-selects .whylisted-notes-menu")), "a Notes menu sits in the Watchlist's filter bar");
+  const total = (await visible()).length;
+  await search("marco");
+  ok(JSON.stringify(await visible()) === JSON.stringify([A]), "searching shows only films whose note matches");
+  const resultTitles = await page.$$eval(".whylisted-result-title", (els) => els.map((e) => e.textContent));
+  ok(resultTitles.length === 1 && (await page.$eval(".whylisted-result-mark", (m) => m.textContent)) === "Marco", "the menu lists matching notes with the match highlighted");
+  ok((await page.$eval(".whylisted-notes-label-text", (e) => e.textContent)).includes("marco"), "the menu label shows the active search");
+  await page.screenshot({ path: join(SHOTS, "10-search.png") });
+
+  await search("MÁRCO");
+  ok(JSON.stringify(await visible()) === JSON.stringify([A]), "search ignores case and accents");
+  await search("nothing like this");
+  ok((await visible()).length === 0 && Boolean(await page.$(".whylisted-empty")), "no matches: the grid explains why it's empty");
+  await search("");
+  ok((await visible()).length === total && !(await page.$(".whylisted-empty")), "clearing the search shows every film again");
+
+  await setShow("Films with a note");
+  let shown = await visible();
+  ok(shown.length === 2 && shown.includes(A) && shown.includes(B), "“Films with a note” shows only noted films");
+  await setShow("Films without a note");
+  shown = await visible();
+  ok(shown.length === total - 2 && !shown.includes(A), "“Films without a note” shows the rest");
+
+  await setShow("Films with a note");
+  await page.keyboard.press("Escape");
+  ok(!(await page.$(".whylisted-menu.-open")), "Esc closes the menu");
+  await open(page, WATCHLIST);
+  ok((await visible()).length === 2, "the filter is kept while you move around the Watchlist (same tab)");
+  await setShow("All films");
+  await page.keyboard.press("Escape");
+  ok((await visible()).length === total, "“All films” resets the filter");
+
+  await open(page, urlA);
+  ok(!(await page.$(".whylisted-notes-menu")), "no Notes menu on film pages");
+
   console.log("Small screens");
   await page.setViewport({ width: 390, height: 844 });
   await open(page, WATCHLIST);
