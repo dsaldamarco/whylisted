@@ -2,3 +2,7 @@ node_modules/
 web-ext-artifacts/
 # Test screenshots contain Letterboxd's UI and poster art; keep them local.
 tests/screenshots/
+
+# AMO API credentials: never commit.
+*.env
+amo/*.env

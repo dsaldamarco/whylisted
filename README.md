@@ -115,7 +115,7 @@ A note you write at home will be waiting on your laptop. Edits and deletions syn
 
 ## Install
 
-**From Firefox Add-ons:** coming soon.
+**From Firefox Add-ons:** [addons.mozilla.org/firefox/addon/whylisted](https://addons.mozilla.org/firefox/addon/whylisted/) (submitted, awaiting Mozilla's review; the page goes live once it's approved).
 
 **From source (development):** requires Firefox 128 or newer, on desktop or Android. Node.js 22+ is only needed for the tooling.
 
