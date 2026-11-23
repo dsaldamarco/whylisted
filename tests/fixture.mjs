@@ -27,7 +27,7 @@ function posterUrl(uid, slug, w, h) {
 }
 
 /** Rewrites server-rendered LazyPoster placeholders into their hydrated form. */
-function hydrate(html) {
+function hydrate(html, posters = {}) {
   return html.replace(
     /(<div class="react-component" data-component-class="LazyPoster"[^>]*>)\s*<div class="poster film-poster">[\s\S]*?<\/span><\/span>\s*<\/div>/g,
     (match, open) => {
@@ -46,7 +46,7 @@ function hydrate(html) {
       return (
         `${open}<div class="poster film-poster" data-production-uid="${uid}">` +
         // Letterboxd only serves 2:3 sizes it knows (e.g. 250×375, not 250×374).
-        `<img width="${w}" height="${h}" alt="Poster for ${t}" class="image" src="${posterUrl(uid, slug, w, h)}" srcset="${posterUrl(uid, slug, w * 2, Math.round(w * 2 * 1.5))} 2x"${fallback}>` +
+        `<img width="${w}" height="${h}" alt="Poster for ${t}" class="image" src="${escapeAttr(posters[slug] ?? posterUrl(uid, slug, w, h))}" srcset="${escapeAttr(posters[slug] ?? posterUrl(uid, slug, w * 2, Math.round(w * 2 * 1.5)))} 2x"${fallback}>` +
         `<a href="${escapeAttr(link)}" class="frame" data-original-title="${t}"><span class="frame-title">${t}</span><span class="overlay"></span></a>` +
         `</div>`
       );
@@ -63,15 +63,29 @@ function reorder(html) {
   });
 }
 
-/** Fetches a Letterboxd page and returns it script-free, with posters in their hydrated form. */
-export async function buildPage(url) {
+/**
+ * The real poster URL for a film, read from its page's structured data. Needed for
+ * films with a custom poster, whose URL can't be derived from the film id.
+ */
+export async function posterFor(slug) {
+  const res = await fetch(`https://letterboxd.com/film/${slug}/`, { headers: { "User-Agent": UA, Accept: "text/html" } });
+  if (!res.ok) return null;
+  const image = (await res.text()).match(/"image":"([^"]+)"/)?.[1];
+  return image ? image.replace(/\\\//g, "/") : null;
+}
+
+/**
+ * Fetches a Letterboxd page and returns it script-free, with posters in their hydrated form.
+ * @param {{ posters?: Record<string, string> }} [options]  Poster URLs by slug (see posterFor).
+ */
+export async function buildPage(url, { posters } = {}) {
   const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "text/html" } });
   if (!res.ok) throw new Error(`Could not fetch ${url}: HTTP ${res.status}`);
   const raw = await res.text();
   if (!raw.includes("LazyPoster")) throw new Error(`${url} did not return any posters (bot check?)`);
   // Letterboxd's scripts swap these <html> classes on load; without that, parts of the page
   // (e.g. the film page's poster column) stay `visibility: hidden`.
-  return hydrate(raw.replace(/<script\b[\s\S]*?<\/script>/gi, ""))
+  return hydrate(raw.replace(/<script\b[\s\S]*?<\/script>/gi, ""), posters)
     .replace(/(<html[^>]*class="[^"]*)\bno-js\b/, "$1js")
     .replace(/(<html[^>]*class="[^"]*)\bcontext-client-unknown\b/, "$1context-client-not-app");
 }

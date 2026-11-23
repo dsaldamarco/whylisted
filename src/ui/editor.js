@@ -118,7 +118,9 @@
     const created = new Date(note.createdAt);
     const updated = new Date(note.updatedAt);
     const edited = updated - created > 60_000;
-    return `${edited ? "Edited" : "Added"} ${DATE_FORMAT.format(edited ? updated : created)}`;
+    const date = `${edited ? "Edited" : "Added"} ${DATE_FORMAT.format(edited ? updated : created)}`;
+    // Firefox Sync's add-on storage is full: this note stays on this device until space frees up.
+    return note.local ? `${date} · This device only` : date;
   }
 
   function resetDelete() {
@@ -249,6 +251,9 @@
     ui.textarea.value = note?.text ?? "";
     ui.textarea.placeholder = PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)];
     ui.meta.textContent = describe(note);
+    ui.meta.title = note?.local
+      ? "Firefox Sync’s space for add-on notes is full, so this note isn’t synced to your other devices. It will be once you delete a few notes."
+      : "";
     ui.del.hidden = !note;
     ui.root.classList.toggle("-existing", Boolean(note));
     updateDirty();

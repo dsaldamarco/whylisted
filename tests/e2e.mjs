@@ -22,6 +22,7 @@ import puppeteer from "puppeteer-core";
 import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { buildFixtures, buildPage } from "./fixture.mjs";
 
@@ -106,6 +107,20 @@ const notesOnPage = (page) =>
       ])
     )
   );
+
+/** Reads / writes Whylisted's storage.sync data straight from the profile (Firefox must be closed). */
+const EXT_ID = "whylisted@whylisted.app";
+function readSync() {
+  const db = new DatabaseSync(join(profile, "storage-sync-v2.sqlite"));
+  const row = db.prepare("SELECT data FROM storage_sync_data WHERE ext_id = ?").get(EXT_ID);
+  db.close();
+  return row?.data ? JSON.parse(row.data) : {};
+}
+function writeSync(data) {
+  const db = new DatabaseSync(join(profile, "storage-sync-v2.sqlite"));
+  db.prepare("UPDATE storage_sync_data SET data = ?, sync_change_counter = 0 WHERE ext_id = ?").run(JSON.stringify(data), EXT_ID);
+  db.close();
+}
 
 const hostFor = (uid) => `.whylisted-host:has([data-production-uid="${uid}"])`;
 
@@ -291,12 +306,68 @@ try {
   await page.screenshot({ path: join(SHOTS, "7-mobile.png") });
   await page.keyboard.press("Escape");
 
-  console.log("Browser restart");
+  console.log("Browser restart & sync");
   await browser.close();
+
+  // Firefox keeps storage.sync in this file; Firefox Sync uploads from and downloads into it.
+  let synced = readSync();
+  ok(synced[`n:${A}`]?.t.includes("with friends") && synced[`n:${B}`]?.t.includes("filmography"), "notes are written to Firefox Sync storage");
+  ok(Object.keys(synced).filter((k) => k.startsWith("n:")).length === 2, "deleted notes are removed from Firefox Sync storage");
+
+  // Simulate Firefox Sync bringing changes from another computer: one new note, one deletion.
+  const D = order[10];
+  const now = Date.now();
+  delete synced[`n:${B}`];
+  synced[`n:${D}`] = { t: "Added on my other computer.", s: "remote", n: "Remote", c: now, u: now };
+  writeSync(synced);
+
   ({ browser, page } = await launch());
   await open(page, WATCHLIST);
   notes = await notesOnPage(page);
-  ok(notes[A]?.includes("with friends") && notes[B]?.includes("filmography") && Object.keys(notes).length === 2, "notes survive a browser restart");
+  ok(notes[A]?.includes("with friends"), "notes survive a browser restart");
+  ok(notes[D]?.includes("other computer"), "a note synced from another device appears");
+  ok(!notes[B], "a note deleted on another device disappears (no local copy brings it back)");
+  ok(Object.keys(notes).length === 2, "no other notes appear");
+
+  console.log("Sync storage full");
+  // Each note of 2000 quotes is ~4 KB once JSON-escaped, so 28 of them exceed sync's ~100 KB quota.
+  const all = await uids(page);
+  for (const uid of all) {
+    await openEditor(page, uid);
+    await page.$eval(".whylisted-pop-text", (t) => {
+      t.value = '"'.repeat(2000);
+      t.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.click(".whylisted-pop .-primary");
+    await sleep(250);
+  }
+  await sleep(500);
+  ok((await page.$$(".whylisted-host.whylisted-has-note")).length === all.length, "every note is saved even when sync storage is full");
+  const metas = [];
+  for (const uid of all.slice(-4)) {
+    await openEditor(page, uid);
+    metas.push(await page.$eval(".whylisted-pop-meta", (el) => el.textContent));
+    await page.keyboard.press("Escape");
+    await sleep(250);
+  }
+  const overflowUid = all.slice(-4)[metas.findIndex((m) => m.includes("This device only"))];
+  ok(Boolean(overflowUid), `notes that don't fit say they're on this device only ("${metas.find((m) => m.includes("device")) ?? metas[0]}")`);
+
+  // Deleting a few notes makes room: the local-only note moves into sync.
+  for (const uid of all.slice(0, 6)) {
+    await writeNote(page, uid, " ");
+  }
+  await sleep(800);
+  if (overflowUid) {
+    await openEditor(page, overflowUid);
+    const meta = await page.$eval(".whylisted-pop-meta", (el) => el.textContent);
+    ok(!meta.includes("device"), "once there is room, local-only notes are synced");
+    await page.keyboard.press("Escape");
+  }
+  await browser.close();
+  synced = readSync();
+  ok(overflowUid && synced[`n:${overflowUid}`], "…and are written to Firefox Sync storage");
+  ({ browser, page } = await launch());
 
   console.log("Other pages");
   await page.goto(OTHER_PAGE, { waitUntil: "domcontentloaded", timeout: 60000 });

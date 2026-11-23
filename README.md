@@ -6,11 +6,11 @@
 
 <p align="center">
   <strong>Remember why it's on your watchlist.</strong><br>
-  Private notes for your Letterboxd Watchlist, right on the poster. A Firefox add-on.
+  Private notes for your Letterboxd Watchlist, right on the poster. Synced across your computers with your Firefox account.
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/watchlist.png" alt="A Letterboxd Watchlist with small blue note badges on some posters; hovering one shows the note 'Watch this before the sequel.'">
+  <img src="docs/screenshots/watchlist.png" alt="A Letterboxd Watchlist with small blue note badges on some posters; hovering the one on [REC] shows the note 'Watch this before the sequel.'">
 </p>
 
 ---
@@ -36,7 +36,7 @@ Letterboxd doesn't offer a place to write that down. **Whylisted adds one.**
 Whylisted lets you attach a short private note to any film, and shows it where you need it: on the poster.
 
 <p align="center">
-  <img src="docs/screenshots/editor.png" alt="The note editor open beside a poster, with the text 'Apparently one of the best sci-fi films ever made. Ask Giulia for her copy.'">
+  <img src="docs/screenshots/editor.png" alt="The note editor open beside the poster of La Gradiva, with the text 'Apparently everyone loved this movie. Saw a lot of reels on socials recommending it.'">
 </p>
 
 - **See at a glance which films have a note.** They carry a small blue badge in the top-right corner of the poster, set into a cut-out ring the way Letterboxd shows avatars on attributed posters.
@@ -44,9 +44,10 @@ Whylisted lets you attach a short private note to any film, and shows it where y
 - **Add one in a second.** Hover any poster, click the **+** that appears in the same corner and type. Nothing else on the page moves.
 - **Edit or delete it at any time.** The editor shows when the note was added or last edited.
 - **Find it on the film's page too.** The same note sits on the cover when you open the film. You can write it there too, even before the film is on your Watchlist.
+- **Have it on all your computers.** Signed in to Firefox? Your notes follow your account to every computer where you use Whylisted.
 
 <p align="center">
-  <img src="docs/screenshots/film-page.png" alt="A Letterboxd film page with the note editor open beside the film's cover, showing 'Recommended by Marco.'">
+  <img src="docs/screenshots/film-page.png" alt="The Letterboxd page for Hard Boiled, with the note editor open beside the film's cover, showing 'Recommended by Vincenzo.'">
 </p>
 
 ### Designed to look like Letterboxd
@@ -72,13 +73,28 @@ So a note stays with its film when you:
 - re-sort or filter the Watchlist, or page through it;
 - remove a film and add it back later (the note will be waiting);
 - reload the page or restart Firefox;
-- open the film's own page (`/film/<slug>/`) or another Watchlist page, or have it open in another tab (tabs stay in sync).
+- open the film's own page (`/film/<slug>/`) or another Watchlist page, or have it open in another tab (tabs stay in sync);
+- open your Watchlist on another computer signed in to the same Firefox account.
 
 The film's slug (`/film/la-gradiva/`) is kept as a fallback for the rare poster without an id. If a uid turns up later for a note saved by slug, the note is moved to the uid automatically.
 
+## Sync across devices
+
+Whylisted uses Firefox's own add-on sync. There's no extra account to create.
+
+1. Sign in to your Firefox account on each computer.
+2. In **Settings → Sync**, make sure **Add-ons** is ticked.
+3. Install Whylisted on each computer.
+
+A note you write at home will be waiting on your laptop. Edits and deletions sync too, and they work offline: Firefox catches up the next time it syncs. If you're not signed in, Whylisted works exactly the same, with notes kept on that computer.
+
+**Firefox for Android.** Whylisted runs on Firefox for Android, but Firefox doesn't sync add-on data to or from Android yet ([Mozilla bug 1625257](https://bugzilla.mozilla.org/show_bug.cgi?id=1625257)). Notes written on your phone stay on your phone, and your desktop notes don't appear there. When Mozilla turns this on, Whylisted will sync on Android with no changes needed.
+
+**How much syncs.** Firefox gives each add-on about 100 KB of synced space (and at most 512 items), which is a few hundred notes of normal length. If you go past that, new notes are still saved, but only on that computer. The editor says *This device only* under the note. Delete a few notes and they move into sync on their own.
+
 ## Privacy
 
-- Notes are stored **only in your browser** (`browser.storage.local`). Nothing is sent anywhere, and there is no account, server or tracking.
+- Notes are stored **in your browser**. If you use Firefox Sync, they travel through it, end-to-end encrypted by Firefox, like your bookmarks and passwords. Whylisted has no server, account or tracking of its own and sends nothing anywhere else.
 - Whylisted never asks for your Letterboxd credentials and never reads, changes or submits anything on your Letterboxd account.
 - Its only permission is `storage`, and it only runs on `letterboxd.com`.
 
@@ -86,7 +102,7 @@ The film's slug (`/film/la-gradiva/`) is kept as a fallback for the rare poster 
 
 **From Firefox Add-ons:** coming soon.
 
-**From source (development):** requires Firefox 128 or newer. Node.js 18+ is only needed for the tooling.
+**From source (development):** requires Firefox 128 or newer, on desktop or Android. Node.js 22+ is only needed for the tooling.
 
 ```bash
 git clone https://github.com/dsaldamarco/whylisted.git
@@ -121,6 +137,7 @@ Temporary add-ons are removed when Firefox closes. Your notes are kept for the n
 
 - create, hover preview, edit, cancel and delete;
 - notes surviving a reload, a re-sort, grid items re-rendered in place, and a full browser restart on the same profile;
+- sync: notes land in Firefox's sync storage, and a note added or deleted "on another computer" (written straight into that storage while Firefox is closed) shows up or disappears; when sync storage is full, notes are kept on the device and move into sync once there's room;
 - notes shared between the Watchlist and film pages, with only the film's own cover getting a badge (not the "similar films" row);
 - the phone-width layout;
 - nothing injected on other pages.
@@ -137,7 +154,7 @@ icons/icon.svg           the add-on icon
 src/
   namespace.js           shared `Whylisted` namespace (nothing leaks into the page)
   film.js                reads the film id, slug, title and year from a poster
-  store.js               notes in browser.storage.local; cache, migration, cross-tab sync
+  store.js               notes in browser.storage.sync (Firefox Sync), local overflow, migration
   ui/icons.js            inline SVG glyphs
   ui/tooltip.js          Letterboxd-style ("twipsy") tooltip for hints and previews
   ui/editor.js           the note popover: layout, keyboard, save/cancel/delete
@@ -157,36 +174,39 @@ docs/                    logo and screenshots for this README
 
 ### Storage format
 
-One key per film, designed so export, import and sync can be added later without a migration:
+One item per film in `browser.storage.sync`, kept compact because synced space is small:
 
 ```json
 {
-  "schemaVersion": 1,
-  "note:film:1041139": {
-    "film": "film:1041139",
-    "slug": "la-gradiva",
-    "title": "La Gradiva",
-    "year": "2026",
-    "text": "Recommended by Marco.",
-    "createdAt": "2026-11-23T10:12:00.000Z",
-    "updatedAt": "2026-11-23T10:12:00.000Z"
+  "n:film:1041139": {
+    "t": "Apparently everyone loved this movie.",
+    "s": "la-gradiva",
+    "n": "La Gradiva",
+    "y": "2026",
+    "c": 1795428832449,
+    "u": 1795428832449
   }
 }
 ```
 
+(`t` text, `s` slug, `n` title, `y` year, `c`/`u` created/updated, in ms.) One item per film means Firefox Sync merges changes from different computers film by film, the most recent edit winning, and `storage.onChanged` says exactly which film changed.
+
+Notes that don't fit in sync live in `browser.storage.local` in a readable form, marked `"local": true`, next to `"schemaVersion": 2`. Version 0.1 kept every note in `storage.local`; those notes move to sync automatically on first run. Export and import can be built on top of either area without a migration.
+
 ## Limitations
 
 - **Watchlists and film pages only.** Whylisted runs on `letterboxd.com/<user>/watchlist/…` and on the cover of `letterboxd.com/film/<slug>/…`. It also runs on other people's Watchlists: your notes are about films, so you'll see them on a friend's Watchlist too. Lists, diary and other poster grids aren't covered yet.
-- **One browser.** Notes live in this Firefox profile and don't sync between devices yet. Uninstalling the add-on deletes them.
+- **Sync is Firefox-only and desktop-only for now.** Notes sync between desktop Firefox installs on the same Firefox account. They don't reach Android yet (see [Sync across devices](#sync-across-devices)), or other browsers. Synced space fits a few hundred notes.
+- **Uninstalling.** Removing the add-on deletes its notes from that computer. Notes that are still on another synced computer are not affected.
 - **Depends on Letterboxd's markup.** Whylisted relies on the film ids Letterboxd puts on posters (`data-postered-identifier`, `data-production-uid`). If those change it fails quietly: no badges, no errors, the page keeps working. An update would then be needed.
-- **Mobile site.** Built for desktop Firefox. Touch screens get an always-visible "+", but Letterboxd's mobile layouts haven't been tested much.
+- **Phones.** Letterboxd serves the same pages to phones, laid out responsively, and Whylisted's editor becomes a full-width panel on narrow screens. Touch screens have no hover, so they get an always-visible "+". This has been tested at phone width in desktop Firefox, not yet on a real Android device.
 
 ## Ideas for later
 
 - Export / import notes (JSON, maybe CSV for spreadsheets)
 - Search and filter the Watchlist by note
 - Tags ("movie night", "with Marco", "director project")
-- Sync across devices via `storage.sync` or a file
+- Sync on Android, once Firefox supports it
 - Notes on lists, diary entries and other poster grids
 
 ## Contributing

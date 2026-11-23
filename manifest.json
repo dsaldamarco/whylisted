@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Whylisted",
   "short_name": "Whylisted",
-  "version": "0.1.0",
-  "description": "Remember why it's on your watchlist. Private notes for films on Letterboxd, right on the poster.",
+  "version": "0.2.0",
+  "description": "Remember why it's on your watchlist. Private notes for films on Letterboxd, right on the poster, synced with your Firefox account.",
   "homepage_url": "https://github.com/dsaldamarco/whylisted",
   "icons": {
     "48": "icons/icon.svg",
@@ -46,6 +46,9 @@
           "none"
         ]
       }
+    },
+    "gecko_android": {
+      "strict_min_version": "128.0"
     }
   }
 }

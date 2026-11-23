@@ -476,9 +476,7 @@
   min-width: 0;
   color: var(--whylisted-pop-meta);
   font-size: 0.75rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.35;
 }
 
 .whylisted-pop-actions {
