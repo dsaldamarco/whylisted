@@ -10,7 +10,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/watchlist.png" alt="A Letterboxd Watchlist with small blue note badges on some posters; hovering the one on [REC] shows the note 'Watch this before the sequel.'">
+  <img src="docs/whylisted-promo.webp" width="960" alt="A 20-second demo: adding the note 'Recommended by Marco.' to a film in a Letterboxd Watchlist, seeing it on the film's page, searching notes for 'marco', and the notes syncing between two computers.">
+  <br>
+  <sub>20-second demo · <a href="docs/whylisted-promo.mp4">watch in full quality (MP4)</a></sub>
 </p>
 
 ---
@@ -144,6 +146,8 @@ Temporary add-ons are removed when Firefox closes. Your notes are kept for the n
 | `npm run test:e2e` | End-to-end test in real Firefox (see below) |
 | `npm run screenshots` | Regenerate the screenshots in this README |
 | `npm run icons` | Render `icons/icon.svg` to `docs/logo.png` |
+| `npm run amo-assets` | Build the addons.mozilla.org icon and 1280×800 screenshots |
+| `npm run promo` | Render the 20-second demo video, frame by frame in Firefox (add `-- --mp4` to encode it; needs ffmpeg) |
 | `npm run sign` | Submit a new version to addons.mozilla.org (needs API keys, see below) |
 
 ### Tests
