@@ -13,7 +13,8 @@
     "screenshots": "node scripts/screenshots.mjs",
     "icons": "node scripts/render-icons.mjs",
     "sign": "web-ext sign --source-dir . --channel listed --amo-metadata amo/metadata.json",
-    "amo-assets": "node scripts/amo-assets.mjs"
+    "amo-assets": "node scripts/amo-assets.mjs",
+    "promo": "node scripts/promo-video.mjs"
   },
   "devDependencies": {
     "puppeteer-core": "^24.0.0",
