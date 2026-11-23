@@ -11,8 +11,6 @@
 
 <p align="center">
   <img src="docs/whylisted-promo.webp" width="960" alt="A 20-second demo: adding the note 'Recommended by Marco.' to a film in a Letterboxd Watchlist, seeing it on the film's page, searching notes for 'marco', and the notes syncing between two computers.">
-  <br>
-  <sub>20-second demo · <a href="docs/whylisted-promo.mp4">watch in full quality (MP4)</a></sub>
 </p>
 
 ---
