@@ -1,0 +1,37 @@
+{
+  "name": "whylisted",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remember why it's on your watchlist. Private notes for your Letterboxd Watchlist (Firefox extension).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "web-ext run --source-dir . --start-url https://letterboxd.com/",
+    "lint": "web-ext lint --source-dir .",
+    "build": "web-ext build --source-dir . --overwrite-dest",
+    "test:e2e": "node tests/e2e.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
+    "icons": "node scripts/render-icons.mjs",
+    "sign": "web-ext sign --source-dir . --channel listed --amo-metadata amo/metadata.json"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.0.0",
+    "web-ext": "^8.0.0"
+  },
+  "webExt": {
+    "ignoreFiles": [
+      "tests",
+      "scripts",
+      "docs",
+      "amo",
+      "node_modules",
+      "package.json",
+      "package-lock.json",
+      "*.md"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dsaldamarco/whylisted.git"
+  }
+}

@@ -1,0 +1,589 @@
+/*
+ * Whylisted — styles injected into letterboxd.com.
+ *
+ * Every selector is prefixed with `whylisted-` so nothing here can affect
+ * Letterboxd's own elements, except for the two deliberate hooks on posters
+ * that have a note (the corner cut-out). Colours, type and motion come from
+ * Letterboxd's own CSS custom properties, with fallbacks matching the values
+ * the site ships today, so the extension follows the site if it changes.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --whylisted-ease: var(--timing-function-ease-out-expo, cubic-bezier(0.19, 1, 0.22, 1));
+  --whylisted-in: var(--duration-xshort, 0.15s);
+  --whylisted-out: var(--duration-short, 0.33s);
+  --whylisted-font: var(--font-stack-graphik, GraphikWeb, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  --whylisted-accent: var(--theme-brand-blue-content-color, #40bcf4);
+  --whylisted-accent-ink: var(--theme-background-color, #14181c);
+}
+
+@property --whylisted-cut {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---------------------------------------------------------- poster hooks */
+
+.whylisted-host {
+  position: relative;
+  /* Badge size and placement. Mirrors Letterboxd's attributed-poster avatar
+     geometry: the badge overlaps the corner and sits in a cut-out ring. */
+  --whylisted-size: 1.375rem;
+  --whylisted-overlap: 0.3125rem;
+  --whylisted-gap: 0.125rem;
+  --whylisted-cut: 0px;
+  transition: --whylisted-cut var(--whylisted-out) var(--whylisted-ease);
+}
+
+.whylisted-host.whylisted-small {
+  --whylisted-size: 1.0625rem;
+  --whylisted-overlap: 0.25rem;
+}
+
+/* The film page's large cover. */
+.whylisted-host.whylisted-large {
+  --whylisted-size: 1.875rem;
+  --whylisted-overlap: 0.4375rem;
+  --whylisted-gap: 0.1875rem;
+}
+
+.whylisted-host.whylisted-has-note {
+  --whylisted-cut: calc(var(--whylisted-size) / 2 + var(--whylisted-gap));
+}
+
+/* The cut-out: a transparent circle where the badge sits. The parent gets
+   the drop shadow so it follows the cut-out shape, like Letterboxd's own
+   attributed posters. */
+.whylisted-host.whylisted-has-note .film-poster {
+  --whylisted-cx: calc(100% - var(--whylisted-size) / 2 + var(--whylisted-overlap));
+  --whylisted-cy: calc(var(--whylisted-size) / 2 - var(--whylisted-overlap));
+  -webkit-mask: radial-gradient(circle var(--whylisted-cut) at var(--whylisted-cx) var(--whylisted-cy), transparent 99%, #fff 100%);
+  mask: radial-gradient(circle var(--whylisted-cut) at var(--whylisted-cx) var(--whylisted-cy), transparent 99%, #fff 100%);
+}
+
+.whylisted-host.whylisted-has-note > :has(> .film-poster) {
+  filter: drop-shadow(0 1px var(--poster-shadow-radius-a, 5px) rgba(var(--poster-shadow-tint, 0, 0, 0), 0.25));
+}
+
+/* ------------------------------------------------------------------- badge */
+
+.whylisted-badge {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 2;
+  inset-block-start: calc(var(--whylisted-overlap) * -1);
+  inset-inline-end: calc(var(--whylisted-overlap) * -1);
+  width: var(--whylisted-size);
+  height: var(--whylisted-size);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  /* "Add" state: the same translucent black as Letterboxd's hover actions. */
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--theme-interactable-content-color, #def);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 4px rgba(0, 0, 0, 0.35);
+
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--whylisted-out) var(--whylisted-ease),
+    transform var(--whylisted-out) var(--whylisted-ease),
+    background-color var(--whylisted-in) var(--whylisted-ease),
+    color var(--whylisted-in) var(--whylisted-ease);
+}
+
+/* A larger, invisible hit area so the small badge is easy to hit. */
+.whylisted-badge::before {
+  content: "";
+  position: absolute;
+  inset: -0.375rem;
+  border-radius: 50%;
+}
+
+.whylisted-badge svg {
+  width: 62%;
+  height: 62%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  grid-area: 1 / 1;
+  transition: opacity var(--whylisted-in) var(--whylisted-ease), transform var(--whylisted-out) var(--whylisted-ease);
+}
+
+.whylisted-glyph-note {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.whylisted-host:hover > .whylisted-badge,
+.whylisted-badge:focus-visible,
+.whylisted-host.whylisted-active > .whylisted-badge {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--whylisted-in), var(--whylisted-out), var(--whylisted-in), var(--whylisted-in);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .whylisted-host:not(.whylisted-has-note, .whylisted-active) > .whylisted-badge:hover {
+    background-color: rgba(0, 0, 0, 0.92);
+    color: var(--theme-interactable-hover-content-color, #fff);
+  }
+}
+
+/* No hover on touch screens: keep the "add" badge faintly visible instead. */
+@media (hover: none) {
+  .whylisted-host > .whylisted-badge {
+    opacity: 0.7;
+    transform: none;
+  }
+}
+
+/* "Has note" state: always visible, brand blue, set into the cut-out. */
+.whylisted-host.whylisted-has-note > .whylisted-badge {
+  opacity: 1;
+  transform: none;
+  background: var(--whylisted-accent);
+  color: var(--whylisted-accent-ink);
+  box-shadow: none;
+}
+
+.whylisted-host.whylisted-has-note > .whylisted-badge svg {
+  stroke-width: 2;
+}
+
+.whylisted-host.whylisted-has-note .whylisted-glyph-add {
+  opacity: 0;
+  transform: scale(0.5) rotate(-45deg);
+}
+
+.whylisted-host.whylisted-has-note .whylisted-glyph-note {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .whylisted-host.whylisted-has-note:not(.whylisted-active) > .whylisted-badge:hover {
+    background: var(--theme-brand-blue-surface-color, #209ce4);
+    color: #fff;
+  }
+}
+
+.whylisted-host.whylisted-active > .whylisted-badge {
+  background: var(--theme-interactable-content-color, #def);
+  color: var(--whylisted-accent-ink);
+}
+
+.whylisted-badge:focus-visible {
+  outline: 2px solid var(--theme-focus-color, rgba(32, 156, 228, 0.9));
+  outline-offset: 2px;
+}
+
+.whylisted-badge.whylisted-pop-in {
+  animation: whylisted-pop 0.5s var(--whylisted-ease);
+}
+
+@keyframes whylisted-pop {
+  0% { transform: scale(0.4); }
+  45% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+/* ----------------------------------------------------------------- tooltip */
+
+/* Same look as Letterboxd's "twipsy" tooltips. */
+.whylisted-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  pointer-events: none;
+  font-family: var(--whylisted-font);
+  opacity: 0;
+  transition: opacity var(--whylisted-in) ease-out;
+  --whylisted-tip-surface: #456;
+}
+
+.whylisted-tip.-visible {
+  opacity: 1;
+}
+
+.whylisted-tip.-instant {
+  transition: none;
+}
+
+.whylisted-tip-inner {
+  display: block;
+  max-width: 360px;
+  padding: 6px 9px;
+  border-radius: 4px;
+  background: var(--whylisted-tip-surface);
+  color: #bcd;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.whylisted-tip.-note .whylisted-tip-inner {
+  max-width: 15rem;
+  padding: 8px 11px 9px;
+  color: #def;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: start;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 7;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(20, 24, 28, 0.45);
+}
+
+.whylisted-tip-arrow {
+  position: absolute;
+  left: var(--arrow-x, 50%);
+  bottom: -6px;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: var(--whylisted-tip-surface);
+  border-bottom-width: 0;
+}
+
+.whylisted-tip.-below .whylisted-tip-arrow {
+  bottom: auto;
+  top: -6px;
+  border-top-color: transparent;
+  border-bottom-color: var(--whylisted-tip-surface);
+  border-top-width: 0;
+  border-bottom-width: 6px;
+}
+
+/* ------------------------------------------------------------------ editor */
+
+/* `data-theme="dialog"` on the element pulls in Letterboxd's dialog colours. */
+.whylisted-pop {
+  --whylisted-pop-surface: var(--theme-background-color, #456);
+  --whylisted-pop-text: var(--theme-body-content-color, #abc);
+  --whylisted-pop-meta: var(--theme-metadata-content-color, #9ab);
+  --whylisted-pop-heading: var(--theme-heading-content-color, #fff);
+
+  position: absolute;
+  z-index: 9000;
+  box-sizing: border-box;
+  width: 18.5rem;
+  padding: 14px 14px 12px;
+  border-radius: 4px;
+  background: var(--whylisted-pop-surface);
+  color: var(--whylisted-pop-text);
+  font-family: var(--whylisted-font);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-align: start;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.06),
+    0 10px 30px rgba(20, 24, 28, 0.55),
+    0 2px 6px rgba(20, 24, 28, 0.35);
+
+  opacity: 0;
+  transform: translateX(var(--whylisted-from-x, 0)) translateY(var(--whylisted-from-y, 0)) scale(0.97);
+  transform-origin: var(--whylisted-origin, top left);
+  transition:
+    opacity 0.16s ease-in,
+    transform 0.16s ease-in;
+}
+
+.whylisted-pop[hidden] {
+  display: none;
+}
+
+.whylisted-pop[data-side="right"] { --whylisted-from-x: -6px; --whylisted-origin: left top; }
+.whylisted-pop[data-side="left"] { --whylisted-from-x: 6px; --whylisted-origin: right top; }
+.whylisted-pop[data-side="below"] { --whylisted-from-y: -6px; --whylisted-origin: top center; }
+.whylisted-pop[data-side="above"] { --whylisted-from-y: 6px; --whylisted-origin: bottom center; }
+
+.whylisted-pop.-open {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--whylisted-in) ease-out,
+    transform var(--whylisted-out) var(--whylisted-ease);
+}
+
+.whylisted-pop *,
+.whylisted-pop *::before,
+.whylisted-pop *::after {
+  box-sizing: border-box;
+}
+
+/* Arrow pointing at the poster. */
+.whylisted-pop-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 7px solid transparent;
+}
+
+.whylisted-pop[data-side="right"] .whylisted-pop-arrow {
+  left: -7px;
+  top: var(--arrow-y, 18px);
+  margin-top: -7px;
+  border-left-width: 0;
+  border-right-color: var(--whylisted-pop-surface);
+}
+
+.whylisted-pop[data-side="left"] .whylisted-pop-arrow {
+  right: -7px;
+  top: var(--arrow-y, 18px);
+  margin-top: -7px;
+  border-right-width: 0;
+  border-left-color: var(--whylisted-pop-surface);
+}
+
+.whylisted-pop[data-side="below"] .whylisted-pop-arrow {
+  top: -7px;
+  left: var(--arrow-x, 50%);
+  margin-left: -7px;
+  border-top-width: 0;
+  border-bottom-color: var(--whylisted-pop-surface);
+}
+
+.whylisted-pop[data-side="above"] .whylisted-pop-arrow {
+  bottom: -7px;
+  left: var(--arrow-x, 50%);
+  margin-left: -7px;
+  border-bottom-width: 0;
+  border-top-color: var(--whylisted-pop-surface);
+}
+
+/* Header */
+
+.whylisted-pop-head {
+  margin: 0 0 10px;
+  padding: 0;
+}
+
+.whylisted-pop-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 3px;
+  color: var(--whylisted-pop-meta);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.whylisted-pop-eyebrow svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: var(--whylisted-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  flex: none;
+}
+
+.whylisted-pop-film {
+  margin: 0;
+  padding: 0;
+  color: var(--whylisted-pop-heading);
+  font-family: var(--whylisted-font);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: normal;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.whylisted-pop-year {
+  color: var(--whylisted-pop-meta);
+  font-weight: 400;
+}
+
+/* Textarea — Letterboxd's private-note field: pale until focused, white when typing. */
+
+.whylisted-pop-field {
+  border-radius: 3px;
+  box-shadow: 0 0 5px rgba(0, 17, 34, var(--whylisted-field-shadow, 0.1));
+  transition: box-shadow var(--whylisted-out) var(--whylisted-ease);
+}
+
+.whylisted-pop-field:has(> textarea:focus) {
+  --whylisted-field-shadow: 1;
+  transition-duration: var(--whylisted-in);
+}
+
+.whylisted-pop-text {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(0.875rem * 1.5 * 3 + 20px);
+  max-height: min(16rem, 45vh);
+  overflow-y: auto;
+  padding: 10px 11px;
+  border-radius: 3px;
+  background: #eff4fa;
+  color: #567;
+  color-scheme: light;
+  font-family: var(--whylisted-font);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+  transition: background-color var(--whylisted-out) var(--whylisted-ease), color var(--whylisted-out) var(--whylisted-ease);
+}
+
+.whylisted-pop-text::placeholder {
+  color: #89a;
+  opacity: 1;
+}
+
+.whylisted-pop-text:hover,
+.whylisted-pop-text:focus {
+  background: #fff;
+  color: #234;
+  transition-duration: var(--whylisted-in);
+}
+
+/* Footer */
+
+.whylisted-pop-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.whylisted-pop-meta {
+  min-width: 0;
+  color: var(--whylisted-pop-meta);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.whylisted-pop-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+
+/* Buttons — Letterboxd's `.button` and `.button.-action`. */
+
+.whylisted-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 3px;
+  font-family: var(--whylisted-font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--whylisted-in) ease-out, color var(--whylisted-in) ease-out, opacity var(--whylisted-in) ease-out;
+}
+
+.whylisted-btn[hidden] {
+  display: none;
+}
+
+.whylisted-btn:focus-visible {
+  outline: 2px solid var(--theme-focus-color, rgba(32, 156, 228, 0.9));
+  outline-offset: 2px;
+}
+
+.whylisted-btn.-primary {
+  background: var(--theme-button-primary-surface-color, #00ac1c);
+  color: var(--theme-button-primary-content-color, #f4fcf0);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 -1px rgba(0, 116, 3, 0.4);
+}
+
+.whylisted-btn.-primary:hover {
+  background: var(--theme-button-primary-hover-surface-color, #00c030);
+  color: #fff;
+}
+
+.whylisted-btn.-primary:active {
+  background: var(--theme-button-primary-active-surface-color, #009926);
+}
+
+.whylisted-btn.-primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+  background: var(--theme-button-primary-surface-color, #00ac1c);
+}
+
+.whylisted-btn.-text {
+  padding: 0 8px;
+  background: transparent;
+  color: var(--whylisted-pop-meta);
+}
+
+.whylisted-btn.-destructive:hover,
+.whylisted-btn.-destructive.-confirm {
+  color: var(--theme-destructive-hover-content-color, #f55c0a);
+}
+
+.whylisted-btn.-destructive.-confirm {
+  background: rgba(236, 18, 0, 0.12);
+}
+
+/* ------------------------------------------------------------ small screens */
+
+@media (max-width: 543px) {
+  .whylisted-pop {
+    padding: 14px 14px 12px;
+  }
+
+  .whylisted-pop-text {
+    font-size: 1rem; /* avoids zoom-on-focus in mobile browsers */
+  }
+}
+
+/* ----------------------------------------------------------- reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .whylisted-host,
+  .whylisted-badge,
+  .whylisted-badge svg,
+  .whylisted-tip,
+  .whylisted-pop,
+  .whylisted-pop.-open,
+  .whylisted-pop-text,
+  .whylisted-pop-field {
+    transition-duration: 0s !important;
+    animation: none !important;
+  }
+
+  .whylisted-pop {
+    transform: none;
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "categories": ["social-communication"],
+  "summary": {
+    "en-US": "Remember why it's on your watchlist. Add private notes to films on Letterboxd, right on the poster: who recommended it, what caught your eye, why you saved it."
+  },
+  "description": {
+    "en-US": "Saving a film to your Letterboxd Watchlist takes one click. Remembering why you saved it, months and hundreds of films later, is another matter.\n\nWhylisted lets you attach a short private note to any film and shows it where you need it: on the poster.\n\n<b>What it does</b>\n<ul><li>Films with a note get a small blue badge in the corner of the poster in your Watchlist. Hover it to read the note.</li><li>Hover any other poster and click the + to add one. Nothing else on the page moves.</li><li>Edit or delete a note at any time.</li><li>The same note appears on the film's own page, on its cover. You can write it there too.</li></ul>\n\n<b>Designed to look like Letterboxd</b>\nThe editor uses Letterboxd's own colours, typography and buttons, so it looks like part of the site.\n\n<b>Notes follow the film</b>\nNotes are stored against Letterboxd's film identifier, not a position in the grid, so they stay with the right film when you sort, filter, remove and re-add films, reload or restart Firefox.\n\n<b>Private by design</b>\nNotes stay in your browser. Nothing is sent anywhere, there is no account or tracking, and Whylisted never touches your Letterboxd account. Its only permission is storage, and it only runs on letterboxd.com.\n\nWhylisted is an independent project, not affiliated with or endorsed by Letterboxd.\n\nSource code: https://github.com/dsaldamarco/whylisted"
+  },
+  "version": {
+    "license": "MIT"
+  }
+}
